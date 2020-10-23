@@ -35,6 +35,7 @@
 #include <map>
 #include <mutex>
 #include <sys/types.h>
+#include <vector>
 
 struct udev_device;
 
@@ -50,7 +51,7 @@ namespace JOYSTICK
       MOTOR_COUNT  = 2,
     };
 
-    CJoystickUdev(udev_device* dev, const char* path);
+    CJoystickUdev(udev_device* dev, const char* path, udev_device* battery);
     virtual ~CJoystickUdev(void) { Deinitialize(); }
 
     // implementation of CJoystick
@@ -91,5 +92,6 @@ namespace JOYSTICK
     std::array<uint16_t, MOTOR_COUNT>    m_motors;
     std::array<uint16_t, MOTOR_COUNT>    m_previousMotors;
     std::recursive_mutex m_mutex;
+    udev_device* m_battery = nullptr;
   };
 }

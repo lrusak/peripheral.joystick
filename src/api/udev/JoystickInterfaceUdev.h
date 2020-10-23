@@ -51,6 +51,8 @@ namespace JOYSTICK
     virtual const ButtonMap& GetButtonMap() override;
 
   private:
+    std::vector<udev_device*> ScanForFeatures(udev_device* device, const char* subsystem);
+
     udev*         m_udev;
     udev_monitor* m_udev_mon;
 

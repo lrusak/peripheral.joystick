@@ -83,6 +83,7 @@ namespace JOYSTICK
     virtual void SetHatValue(unsigned int hatIndex, JOYSTICK_STATE_HAT hatValue);
     virtual void SetAxisValue(unsigned int axisIndex, JOYSTICK_STATE_AXIS axisValue);
     void SetAxisValue(unsigned int axisIndex, long value, long maxAxisAmount);
+    void SetBatteryValue(JOYSTICK_STATE_BATTERY_CAPACITY batteryCapacityValue, JOYSTICK_STATE_BATTERY_STATUS batteryStatusValue);
 
   private:
     void Activate();
@@ -90,6 +91,7 @@ namespace JOYSTICK
     void GetButtonEvents(std::vector<kodi::addon::PeripheralEvent>& events);
     void GetHatEvents(std::vector<kodi::addon::PeripheralEvent>& events);
     void GetAxisEvents(std::vector<kodi::addon::PeripheralEvent>& events);
+    void GetBatteryEvents(std::vector<kodi::addon::PeripheralEvent>& events);
 
     struct JoystickAxis
     {
@@ -97,11 +99,19 @@ namespace JOYSTICK
       bool bSeen = false;
     };
 
+    struct JoystickBattery
+    {
+      const char* status;
+      uint8_t capacity;
+      bool present = false;
+    };
+
     struct JoystickState
     {
       std::vector<JOYSTICK_STATE_BUTTON> buttons;
       std::vector<JOYSTICK_STATE_HAT>    hats;
       std::vector<JoystickAxis>          axes;
+      JoystickBattery                    battery;
     };
 
     JoystickState                     m_state;

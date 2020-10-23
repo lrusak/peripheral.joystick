@@ -68,6 +68,32 @@ void CJoystickInterfaceUdev::Deinitialize()
   }
 }
 
+std::vector<udev_device*> CJoystickInterfaceUdev::ScanForFeatures(udev_device* device, const char* subsystem)
+{
+  std::vector<udev_device*> devices;
+
+  struct udev_enumerate *enumerate = udev_enumerate_new(m_udev);
+  if (enumerate == nullptr)
+    return devices;
+
+  struct udev_device* parent = udev_device_get_parent_with_subsystem_devtype(device, "hid", "hid");
+
+  udev_enumerate_add_match_parent(enumerate, parent);
+  udev_enumerate_add_match_subsystem(enumerate, subsystem);
+  udev_enumerate_scan_devices(enumerate);
+
+  struct udev_list_entry* devs = udev_enumerate_get_list_entry(enumerate);
+  struct udev_list_entry* entry;
+  udev_list_entry_foreach(entry, devs)
+  {
+    const char* name = udev_list_entry_get_name(entry);
+    devices.emplace_back(udev_device_new_from_syspath(m_udev, name));
+  }
+
+  udev_enumerate_unref(enumerate);
+  return devices;
+}
+
 bool CJoystickInterfaceUdev::ScanForJoysticks(JoystickVector& joysticks)
 {
   if (!m_udev)
@@ -90,9 +116,11 @@ bool CJoystickInterfaceUdev::ScanForJoysticks(JoystickVector& joysticks)
      struct udev_device* dev = udev_device_new_from_syspath(m_udev, name);
      const char*         devnode = udev_device_get_devnode(dev);
 
+     auto batteries = ScanForFeatures(dev, "power_supply");
+
      if (devnode != nullptr)
      {
-       JoystickPtr joystick = JoystickPtr(new CJoystickUdev(dev, devnode));
+       JoystickPtr joystick = JoystickPtr(new CJoystickUdev(dev, devnode, batteries[0]));
        joysticks.push_back(joystick);
      }
 

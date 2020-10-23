@@ -33,7 +33,7 @@ using namespace JOYSTICK;
 // From RetroArch
 #define NBITS(x)  ((((x) - 1) / (sizeof(long) * CHAR_BIT)) + 1)
 
-CJoystickUdev::CJoystickUdev(udev_device* dev, const char* path)
+CJoystickUdev::CJoystickUdev(udev_device* dev, const char* path, udev_device* battery)
  : CJoystick(EJoystickInterface::UDEV),
    m_dev(dev),
    m_path(path),
@@ -42,7 +42,8 @@ CJoystickUdev::CJoystickUdev(udev_device* dev, const char* path)
    m_bInitialized(false),
    m_effect(-1),
    m_motors(),
-   m_previousMotors()
+   m_previousMotors(),
+   m_battery(battery)
 {
   // Must initialize in the constructor to fill out joystick properties
   Initialize();
@@ -225,6 +226,16 @@ bool CJoystickUdev::ScanEvents(void)
           break;
       }
     }
+  }
+
+  if (m_battery)
+  {
+    const char* capacityStr = udev_device_get_sysattr_value(m_battery, "capacity");
+    const char* status = udev_device_get_sysattr_value(m_battery, "status");
+
+    unsigned long capacity = std::strtoul(capacityStr, nullptr, 10);
+
+    SetBatteryValue(static_cast<uint8_t>(capacity), status);
   }
 
   return true;

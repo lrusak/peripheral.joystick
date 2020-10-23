@@ -86,6 +86,7 @@ bool CJoystick::GetEvents(std::vector<kodi::addon::PeripheralEvent>& events)
     GetButtonEvents(events);
     GetHatEvents(events);
     GetAxisEvents(events);
+    GetBatteryEvents(events);
 
     return true;
   }
@@ -164,6 +165,16 @@ void CJoystick::GetAxisEvents(std::vector<kodi::addon::PeripheralEvent>& events)
   m_state.axes.assign(axes.begin(), axes.end());
 }
 
+void CJoystick::GetBatteryEvents(std::vector<kodi::addon::PeripheralEvent>& events)
+{
+  const JoystickBattery& battery = m_stateBuffer.battery;
+
+  if (battery.present)
+      events.push_back(kodi::addon::PeripheralEvent(Index(), battery.capacity, battery.status));
+
+  m_state.battery = battery;
+}
+
 void CJoystick::SetButtonValue(unsigned int buttonIndex, JOYSTICK_STATE_BUTTON buttonValue)
 {
   Activate();
@@ -199,4 +210,13 @@ void CJoystick::SetAxisValue(unsigned int axisIndex, long value, long maxAxisAmo
     SetAxisValue(axisIndex, (float)value / (float)maxAxisAmount);
   else
     SetAxisValue(axisIndex, 0.0f);
+}
+
+void CJoystick::SetBatteryValue(JOYSTICK_STATE_BATTERY_CAPACITY batteryCapacityValue, JOYSTICK_STATE_BATTERY_STATUS batteryStatusValue)
+{
+  Activate();
+
+  m_stateBuffer.battery.capacity = batteryCapacityValue;
+  m_stateBuffer.battery.status = batteryStatusValue;
+  m_stateBuffer.battery.present = true;
 }
